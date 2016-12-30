@@ -1,5 +1,6 @@
 package com.np.coolweather;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -196,6 +197,14 @@ public class WeatherActivity extends AppCompatActivity {
 
     /** 处理并展示 Weather 实体类中的数据 */
     private void showWeatherInfo(Weather weather) {
+        // 开启后天更新天气服务
+        if (weather != null && "ok".equals(weather.status)) {
+            Intent intent = new Intent(this, AutoUpdateService.class);
+            startService(intent)
+        } else {
+            Toast.makeText(WeatherActivity.this, "获取天气信息失败.", Toast.LENGTH_SHORT).show();
+        }
+
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[1];
         String degree = weather.now.temperature + "℃";
