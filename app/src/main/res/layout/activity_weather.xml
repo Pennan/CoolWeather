@@ -13,32 +13,53 @@
         android:id="@+id/iv_weather_bing_pic_img"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"/>
+        android:scaleType="centerCrop" />
 
-    <ScrollView
-        android:id="@+id/weather_layout"
+    <android.support.v4.widget.DrawerLayout
+        android:id="@+id/drawer_layout_weather"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:overScrollMode="never"
-        android:scrollbars="none">
+        android:layout_height="match_parent">
 
-        <!-- 设置 fitsSystemWindows 为 true,表示 LinearLayout 包裹的内容会为系统状态栏留出空间 -->
-        <LinearLayout
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_weather"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:fitsSystemWindows="true">
+            android:layout_height="match_parent">
 
-            <include layout="@layout/title" />
+            <ScrollView
+                android:id="@+id/weather_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:overScrollMode="never"
+                android:scrollbars="none">
 
-            <include layout="@layout/now" />
+                <!-- 设置 fitsSystemWindows 为 true,表示 LinearLayout 包裹的内容会为系统状态栏留出空间 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fitsSystemWindows="true"
+                    android:orientation="vertical">
 
-            <include layout="@layout/forecast" />
+                    <include layout="@layout/title" />
 
-            <include layout="@layout/aqi" />
+                    <include layout="@layout/now" />
 
-            <include layout="@layout/suggestion" />
-        </LinearLayout>
-    </ScrollView>
+                    <include layout="@layout/forecast" />
 
+                    <include layout="@layout/aqi" />
+
+                    <include layout="@layout/suggestion" />
+                </LinearLayout>
+            </ScrollView>
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+        <!-- 添加选中省市区作为天气界面的侧滑页面 -->
+
+        <fragment
+            android:id="@+id/choose_area_fragment_weather"
+            android:name="com.np.coolweather.ChooseAreaFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="start" />
+
+    </android.support.v4.widget.DrawerLayout>
 </FrameLayout>

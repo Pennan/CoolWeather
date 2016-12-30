@@ -5,9 +5,13 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -28,6 +32,7 @@ import okhttp3.Response;
 
 public class WeatherActivity extends AppCompatActivity {
 
+    private Button btnNavigation;
     private TextView tvTitleCity;
     private TextView tvTitleUpdateTime;
 
@@ -46,6 +51,11 @@ public class WeatherActivity extends AppCompatActivity {
     private SharedPreferences mPref;
 
     private ImageView ivBingPic;
+    public SwipeRefreshLayout swipeRefreshLayout;
+
+    public DrawerLayout drawerLayout;
+
+    private String weatherId; // 城市的天气查询 Id
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +73,31 @@ public class WeatherActivity extends AppCompatActivity {
         initViews();
         loadWeatherInfo();
         loadWeatherPicture();
+        initSwipeRefreshLayout();
+        setNavigationButtonListener();
+    }
+
+    /** 设置切换城市的按钮的点击监听 */
+    private void setNavigationButtonListener() {
+        btnNavigation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 点击打开滑动菜单
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
+    }
+
+    /** 初始化下拉刷新监听 */
+    private void initSwipeRefreshLayout() {
+        // 设置下拉刷新进度条颜色
+        swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                requestWeather(weatherId);
+            }
+        });
     }
 
     /** 加载天气界面背景图片 */
@@ -107,17 +142,18 @@ public class WeatherActivity extends AppCompatActivity {
         if (weatherString != null) {
             // 有缓存时直接解析天气数据
             Weather weather = Utility.handleWeatherResponse(weatherString);
+            weatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         } else {
             // 无缓存时去服务器查询天气
-            String weatherId = getIntent().getStringExtra("weather_id");
+            weatherId = getIntent().getStringExtra("weather_id");
             lLayoutForecast.setVisibility(View.INVISIBLE);
             requestWeather(weatherId);
         }
     }
 
     /** 根据天气 id 请求城市天气信息 */
-    private void requestWeather(String weatherId) {
+    public void requestWeather(String weatherId) {
         // 请求参数
         String requestParam = "?cityid=" + weatherId + "&key=" + AppConstant.BASE_WEATHER_KEY;
         String weatherUrl = AppConstant.BASE_URL + AppConstant.WEATHER + requestParam;
@@ -137,6 +173,8 @@ public class WeatherActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
                         }
+                        // 天气加载完成后,结束刷新事件,并隐藏刷新进度条
+                        swipeRefreshLayout.setRefreshing(false);
                     }
                 });
             }
@@ -148,6 +186,8 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
+                        // 天气加载失败后,结束刷新事件,并隐藏刷新进度条
+                        swipeRefreshLayout.setRefreshing(false);
                     }
                 });
             }
@@ -197,6 +237,7 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     private void initViews() {
+        btnNavigation = (Button) findViewById(R.id.title_nav_button);
         tvTitleCity = (TextView) findViewById(R.id.title_city);
         tvTitleUpdateTime = (TextView) findViewById(R.id.title_update_time);
         tvNowDegreeText = (TextView) findViewById(R.id.now_degree_text);
@@ -208,5 +249,7 @@ public class WeatherActivity extends AppCompatActivity {
         tvSuggestionCarWashText = (TextView) findViewById(R.id.suggestion_car_wash_text);
         tvSuggestionSportText = (TextView) findViewById(R.id.suggestion_sport_text);
         ivBingPic = (ImageView) findViewById(R.id.iv_weather_bing_pic_img);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_weather);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout_weather);
     }
 }
