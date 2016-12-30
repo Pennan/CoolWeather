@@ -2,6 +2,7 @@ package com.np.coolweather;
 
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 import com.np.coolweather.db.City;
 import com.np.coolweather.db.County;
 import com.np.coolweather.db.Province;
+import com.np.coolweather.utils.AppConstant;
 import com.np.coolweather.utils.HttpUtil;
 import com.np.coolweather.utils.Utility;
 
@@ -39,6 +41,9 @@ public class ChooseAreaFragment extends Fragment {
     private static final int LEVEL_CITY = 1;
     private static final int LEVEL_COUNTY = 2;
 
+    /** 获取所有省份的 Url */
+    private static final String CHINA_URL = AppConstant.BASE_URL + AppConstant.CHINA;
+
     private ProgressDialog mDialog;
 
     private TextView tvTitle;
@@ -52,7 +57,9 @@ public class ChooseAreaFragment extends Fragment {
     private List<City> cities;
     private List<County> counties;
 
+    /** 选中的省份 */
     private Province selectedProvince;
+    /** 选中的城市 */
     private City selectedCity;
 
     /** 当前选中的级别 */
@@ -81,13 +88,20 @@ public class ChooseAreaFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (currentLevel) {
-                    case LEVEL_PROVINCE:
+                    case LEVEL_PROVINCE: // 点击查询该省所有市
                         selectedProvince = provinces.get(position);
                         queryCities();
                         break;
-                    case LEVEL_CITY:
+                    case LEVEL_CITY: // 点击查询该市所有县
                         selectedCity = cities.get(position);
                         queryCounties();
+                        break;
+                    case LEVEL_COUNTY: // 点击查询该县天气信息
+                        String weatherId = counties.get(position).getWeatherId();
+                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                        intent.putExtra("weather_id", weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
                         break;
                 }
             }
@@ -127,7 +141,7 @@ public class ChooseAreaFragment extends Fragment {
         } else {
             int provinceCode = selectedProvince.getProvinceCode();
             int cityCode = selectedCity.getCityCode();
-            String address = "http://guolin.tech/api/china/" + provinceCode + "/" + cityCode;
+            String address = CHINA_URL + "/" + provinceCode + "/" + cityCode;
             queryFromServer(address, "county");
         }
     }
@@ -148,7 +162,7 @@ public class ChooseAreaFragment extends Fragment {
             currentLevel = LEVEL_CITY;
         } else {
             int provinceCode = selectedProvince.getProvinceCode();
-            String address = "http://guolin.tech/api/china/" + provinceCode;
+            String address = CHINA_URL + "/" + provinceCode;
             queryFromServer(address, "city");
         }
     }
@@ -167,7 +181,7 @@ public class ChooseAreaFragment extends Fragment {
             mListView.setSelection(0);
             currentLevel = LEVEL_PROVINCE;
         } else {
-            String address = "http://guolin.tech/api/china";
+            String address = CHINA_URL;
             queryFromServer(address, "province");
         }
     }
