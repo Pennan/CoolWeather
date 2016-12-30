@@ -9,6 +9,12 @@
 
     <!-- 主天气界面布局 -->
 
+    <ImageView
+        android:id="@+id/iv_weather_bing_pic_img"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+
     <ScrollView
         android:id="@+id/weather_layout"
         android:layout_width="match_parent"
@@ -16,10 +22,12 @@
         android:overScrollMode="never"
         android:scrollbars="none">
 
+        <!-- 设置 fitsSystemWindows 为 true,表示 LinearLayout 包裹的内容会为系统状态栏留出空间 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:fitsSystemWindows="true">
 
             <include layout="@layout/title" />
 

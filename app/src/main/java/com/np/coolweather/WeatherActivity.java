@@ -1,15 +1,19 @@
 package com.np.coolweather;
 
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.np.coolweather.gson.Forecast;
 import com.np.coolweather.gson.Weather;
 import com.np.coolweather.utils.AppConstant;
@@ -41,11 +45,63 @@ public class WeatherActivity extends AppCompatActivity {
 
     private SharedPreferences mPref;
 
+    private ImageView ivBingPic;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 设置背景图片全屏（需要与 fitSystemWindows 属性配合）
+        if (Build.VERSION.SDK_INT >= 21) {
+            View decorView = getWindow().getDecorView();
+            // 表示活动的布局会显示在状态栏上面
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            // 将状态栏设置成透明
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
         setContentView(R.layout.activity_weather);
         initViews();
+        loadWeatherInfo();
+        loadWeatherPicture();
+    }
+
+    /** 加载天气界面背景图片 */
+    private void loadWeatherPicture() {
+        String bingPic = mPref.getString("bing_pic", null);
+        if (bingPic != null) {
+            Glide.with(this).load(bingPic).into(ivBingPic);
+        } else {
+            loadBingPic();
+        }
+    }
+
+    /** 加载必应每日一图 */
+    private void loadBingPic() {
+        String requestBingPic = AppConstant.BASE_URL + AppConstant.BING_PIC;
+        HttpUtil.sendOKHttpRequest(requestBingPic, new Callback() {
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String bingPic = response.body().string();
+                SharedPreferences.Editor edit = mPref.edit();
+                edit.putString("bing_pic", bingPic);
+                edit.apply();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Glide.with(WeatherActivity.this).load(bingPic).into(ivBingPic);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /** 加载天气信息 */
+    private void loadWeatherInfo() {
         mPref = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = mPref.getString("Weather", null);
         if (weatherString != null) {
@@ -151,5 +207,6 @@ public class WeatherActivity extends AppCompatActivity {
         tvSuggestionComfortText = (TextView) findViewById(R.id.suggestion_comfort_text);
         tvSuggestionCarWashText = (TextView) findViewById(R.id.suggestion_car_wash_text);
         tvSuggestionSportText = (TextView) findViewById(R.id.suggestion_sport_text);
+        ivBingPic = (ImageView) findViewById(R.id.iv_weather_bing_pic_img);
     }
 }

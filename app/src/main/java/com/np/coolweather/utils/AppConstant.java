@@ -8,4 +8,6 @@ public class AppConstant {
     public static final String CHINA = "/china";
     /** 获取天气信息 */
     public static final String WEATHER = "/weather";
+    /** 获取必应每日一图 */
+    public static final String BING_PIC = "/bing_pic";
 }
